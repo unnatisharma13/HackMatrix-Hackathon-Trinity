@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ResuMatch – Analysis Results</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --ink: #0d0d1a; --paper: #f5f3ee; --accent: #5540f7; --accent2: #ff5c5c;
+    --muted: #7b7b90; --card: #ffffff; --border: #e2e0d9; --green: #22c55e;
+    --orange: #f59e0b; --red: #ef4444;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); }
+
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 48px; background: rgba(245,243,238,0.9); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.2rem; color: var(--ink); text-decoration: none; }
+  .logo-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--accent);
+    display: flex; align-items: center; justify-content: center; }
+  .logo-icon svg { width: 18px; height: 18px; }
+  .nav-link { display: flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none;
+    font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+  .nav-link:hover { color: var(--ink); }
+
+  main { max-width: 800px; margin: 0 auto; padding: 64px 24px 80px; }
+
+  /* HERO SCORE */
+  .result-hero { text-align: center; margin-bottom: 40px; animation: fadeUp 0.6s ease both; }
+  .result-hero h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(2rem,5vw,2.8rem);
+    letter-spacing: -0.02em; margin-bottom: 6px; }
+  .result-hero p { color: var(--muted); }
+
+  /* SCORE CARD */
+  .score-card {
+    background: var(--card); border: 2px solid var(--border); border-radius: 24px;
+    padding: 48px 36px; text-align: center; margin-bottom: 28px;
+    animation: fadeUp 0.6s 0.1s ease both;
+    position: relative; overflow: hidden;
+  }
+  .score-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: var(--score-color, var(--border));
+  }
+  .score-num {
+    font-family: 'Syne', sans-serif; font-size: 5rem; font-weight: 800;
+    line-height: 1; letter-spacing: -0.04em; margin-bottom: 12px;
+    color: var(--score-color, var(--ink));
+  }
+  .score-badge {
+    display: inline-block; padding: 6px 18px; border-radius: 100px;
+    font-weight: 600; font-size: 0.85rem; margin-bottom: 24px;
+    background: var(--score-bg, #f3f4f6); color: var(--score-color, var(--muted));
+  }
+  .score-bar-wrap { background: var(--paper); border-radius: 100px; height: 10px;
+    max-width: 480px; margin: 0 auto 20px; overflow: hidden; }
+  .score-bar { height: 100%; border-radius: 100px; background: var(--score-color, var(--border));
+    width: 0; transition: width 1.4s cubic-bezier(0.4,0,0.2,1); }
+  .score-desc { color: var(--muted); font-size: 0.95rem; max-width: 420px; margin: 0 auto; line-height: 1.6; }
+
+  /* SECTIONS */
+  .section-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+    padding: 28px 32px; margin-bottom: 20px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .section-header-left { display: flex; align-items: center; gap: 10px; }
+  .section-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; }
+  .priority-badge {
+    padding: 4px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600;
+    border: 1.5px solid currentColor;
+  }
+  .p-high { color: var(--red); border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); }
+  .p-med { color: var(--orange); border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.05); }
+  .p-low { color: var(--accent); border-color: rgba(85,64,247,0.3); background: rgba(85,64,247,0.05); }
+  .section-items { display: flex; flex-direction: column; gap: 10px; }
+  .section-item { display: flex; align-items: flex-start; gap: 12px; }
+  .item-icon { flex-shrink: 0; margin-top: 1px; }
+  .item-text { font-size: 0.92rem; line-height: 1.5; }
+
+  /* KEYWORDS */
+  .keywords-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .kw-tag {
+    padding: 5px 12px; border-radius: 100px; font-size: 0.82rem; font-weight: 500;
+    border: 1.5px solid;
+  }
+  .kw-found { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.3); color: #16a34a; }
+  .kw-missing { background: rgba(239,68,68,0.06); border-color: rgba(239,68,68,0.25); color: var(--red); }
+
+  /* ROADMAP TOGGLE */
+  .roadmap-trigger {
+    background: var(--card); border: 1.5px solid var(--border); border-radius: 20px;
+    padding: 40px 32px; text-align: center; margin-bottom: 20px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .roadmap-icon {
+    width: 60px; height: 60px; background: var(--accent); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+  }
+  .roadmap-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; margin-bottom: 6px; }
+  .roadmap-sub { color: var(--muted); font-size: 0.92rem; margin-bottom: 24px; }
+  .toggle-btn {
+    background: var(--accent); color: #fff; border: none; cursor: pointer;
+    padding: 14px 32px; border-radius: 100px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem;
+    display: inline-flex; align-items: center; gap: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 6px 24px rgba(85,64,247,0.25);
+  }
+  .toggle-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(85,64,247,0.35); }
+
+  /* ROADMAP */
+  .roadmap-section { display: none; }
+  .roadmap-section.open { display: block; }
+  .roadmap-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 6px;
+  }
+  .roadmap-header-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.05rem; }
+  .roadmap-header-sub { color: var(--muted); font-size: 0.85rem; margin-bottom: 24px; }
+
+  .roadmap-wrap {
+    background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+    padding: 28px 32px; margin-bottom: 20px;
+    animation: fadeUp 0.4s ease both;
+  }
+  .roadmap-group { border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 24px; }
+  .roadmap-group:last-child { border: none; padding-bottom: 0; margin-bottom: 0; }
+
+  /* PRO TIP */
+  .pro-tip {
+    background: rgba(34,197,94,0.06); border: 1.5px solid rgba(34,197,94,0.25); border-radius: 16px;
+    padding: 24px 28px; display: flex; gap: 16px; align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  .pro-tip-icon { flex-shrink: 0; width: 44px; height: 44px; background: var(--green); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; }
+  .pro-tip-title { font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: 4px; }
+  .pro-tip-text { font-size: 0.9rem; color: var(--muted); line-height: 1.5; margin-bottom: 16px; }
+  .reanalyze-btn {
+    background: none; border: 2px solid var(--green); color: var(--green);
+    padding: 10px 24px; border-radius: 100px; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.88rem;
+    transition: background 0.2s, color 0.2s;
+  }
+  .reanalyze-btn:hover { background: var(--green); color: #fff; }
+
+  /* FOOTER BTNS */
+  .footer-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+  .btn-secondary {
+    background: none; border: 2px solid var(--border); color: var(--ink);
+    padding: 12px 28px; border-radius: 100px; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.9rem;
+    text-decoration: none; transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--ink); }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+  @media(max-width:640px){ nav{padding:16px 20px;} main{padding:48px 16px 64px;} .section-card{padding:20px;} }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="8" stroke-opacity="0.5"/><circle cx="12" cy="12" r="11" stroke-opacity="0.2"/></svg>
+    </div>
+    ResuMatch
+  </a>
+  <a href="analyze.html" class="nav-link">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    Analyze Another
+  </a>
+</nav>
+
+<main>
+  <div class="result-hero">
+    <h1>Analysis Complete!</h1>
+    <p>Here's how your resume matches the job description</p>
+  </div>
+
+  <!-- SCORE -->
+  <div class="score-card" id="scoreCard" style="--score-color:#ef4444;--score-bg:rgba(239,68,68,0.08)">
+    <div class="score-num" id="scoreNum">0%</div>
+    <div class="score-badge" id="scoreBadge">Needs Improvement</div>
+    <div class="score-bar-wrap"><div class="score-bar" id="scoreBar"></div></div>
+    <p class="score-desc" id="scoreDesc">Your resume matches 0% of the job requirements. Consider updating your resume to better match the job requirements.</p>
+  </div>
+
+  <!-- MATCHING KEYWORDS -->
+  <div class="section-card" style="animation-delay:0.15s">
+    <div class="section-header">
+      <div class="section-header-left">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <span class="section-title">Matching Keywords Found</span>
+      </div>
+    </div>
+    <p style="color:var(--muted);font-size:0.88rem;margin-bottom:14px">These keywords from the job description were found in your resume</p>
+    <div class="keywords-wrap" id="matchingKeywords">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <!-- MISSING KEYWORDS -->
+  <div class="section-card" style="animation-delay:0.2s">
+    <div class="section-header">
+      <div class="section-header-left">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <span class="section-title">Missing Keywords</span>
+      </div>
+      <span class="priority-badge p-high">Missing from Resume</span>
+    </div>
+    <div class="keywords-wrap" id="missingKeywords">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <!-- ROADMAP TRIGGER -->
+  <div class="roadmap-trigger" id="roadmapTrigger">
+    <div class="roadmap-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    </div>
+    <p class="roadmap-title">Want to Improve Your Score?</p>
+    <p class="roadmap-sub">Get a personalized roadmap with actionable steps to optimize your resume</p>
+    <button class="toggle-btn" id="roadmapToggle" onclick="toggleRoadmap()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      Show Improvement Roadmap
+    </button>
+  </div>
+
+  <!-- ROADMAP -->
+  <div class="roadmap-section" id="roadmapSection">
+    <div class="roadmap-wrap">
+      <div class="roadmap-header">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+        <span class="roadmap-header-title">Your Personalized Improvement Roadmap</span>
+      </div>
+      <p class="roadmap-header-sub">Follow these recommendations to increase your match percentage</p>
+
+      <div class="roadmap-group">
+        <div class="section-header" style="margin-bottom:16px">
+          <div class="section-header-left">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span class="section-title">Skills Gap</span>
+          </div>
+          <span class="priority-badge p-high">High Priority</span>
+        </div>
+        <div class="section-items">
+          <div class="section-item"><svg class="item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="item-text">Add cloud computing experience (AWS, Azure, or GCP)</span></div>
+          <div class="section-item"><svg class="item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="item-text">Include specific framework versions (React 18, Node.js 16+)</span></div>
+          <div class="section-item"><svg class="item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="item-text">Highlight DevOps and CI/CD pipeline experience</span></div>
+        </div>
+      </div>
+
+      <div class="roadmap-group">
+        <div class="section-header" style="margin-bottom:16px">
+          <div class="section-header-left">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span class="section-title">Keywords Missing</span>
+          </div>
+          <span class="priority-badge p-high">High Priority</span>
+        </div>
+        <div class="section-items">
+          <div class="section-item"><svg class="item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="item-text">Add 'microservices architecture' to your experience</span></div>
+          <div class="section-item"><svg class="item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="item-text">Include 'RESTful API' design and development</span></div>
+          <div class="section-item"><svg class="item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="item-text">Mention 'Agile/Scrum' methodology experience</span></div>
+        </div>
+      </div>
+
+      <div class="roadmap-group">
+        <div class="section-header" style="margin-bottom:16px">
+          <div class="section-header-left">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span class="section-title">Experience Alignment</span>
+          </div>
+          <span class="priority-badge p-med">Medium Priority</span>
+        </div>
+        <div class="section-items">
+          <div class="section-item"><svg class="item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="item-text">Quantify achievements with metrics (e.g., '30% performance improvement')</span></div>
+          <div class="section-item"><svg class="item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="item-text">Add leadership or mentoring experience if applicable</span></div>
+          <div class="section-item"><svg class="item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="item-text">Include team size and project scope in descriptions</span></div>
+        </div>
+      </div>
+
+      <div class="roadmap-group">
+        <div class="section-header" style="margin-bottom:16px">
+          <div class="section-header-left">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span class="section-title">Formatting &amp; Structure</span>
+          </div>
+          <span class="priority-badge p-med">Medium Priority</span>
+        </div>
+        <div class="section-items">
+          <div class="section-item"><svg class="item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="item-text">Use action verbs to start bullet points (Led, Developed, Implemented)</span></div>
+          <div class="section-item"><svg class="item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="item-text">Keep descriptions concise (2-3 lines per bullet)</span></div>
+          <div class="section-item"><svg class="item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="item-text">Add a professional summary at the top highlighting key qualifications</span></div>
+        </div>
+      </div>
+
+      <div class="roadmap-group">
+        <div class="section-header" style="margin-bottom:16px">
+          <div class="section-header-left">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>
+            <span class="section-title">Certifications &amp; Education</span>
+          </div>
+          <span class="priority-badge p-low">Low Priority</span>
+        </div>
+        <div class="section-items">
+          <div class="section-item"><svg class="item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="item-text">Consider adding relevant certifications mentioned in the job description</span></div>
+          <div class="section-item"><svg class="item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="item-text">List relevant coursework if recently graduated</span></div>
+          <div class="section-item"><svg class="item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="item-text">Include any relevant continuing education or training</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pro-tip">
+      <div class="pro-tip-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <div>
+        <p class="pro-tip-title">Pro Tip: Update and Re-analyze</p>
+        <p class="pro-tip-text">After making these improvements to your resume, run the analysis again to see your new match percentage. Aim for 75% or higher for the best results!</p>
+        <button class="reanalyze-btn" onclick="window.location.href='analyze.html'">Analyze Updated Resume</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-btns">
+    <a href="index.html" class="btn-secondary">Back to Home</a>
+    <a href="analyze.html" class="btn-secondary">Analyze Another Resume</a>
+  </div>
+</main>
+
+<script>
+  const storedResult = sessionStorage.getItem("analysisResult");
+
+if (!storedResult) {
+  alert("No analysis result found. Please analyze a resume first.");
+  window.location.href = "analyze.html";
+}
+
+const result = JSON.parse(storedResult);
+
+const score = result.match_score || 0;
+const matchingKWs = result.matched_keywords || [];
+const missingKWs = result.missing_skills || [];
+
+const scoreColors = {
+  high: {
+    color: '#22c55e',
+    bg: 'rgba(34,197,94,0.08)',
+    label: 'Great Match',
+    desc: `Your resume matches ${score}% of the job requirements. You are a strong fit for this role.`
+  },
+  mid: {
+    color: '#f59e0b',
+    bg: 'rgba(245,158,11,0.08)',
+    label: 'Fair Match',
+    desc: `Your resume matches ${score}% of the job requirements. A few improvements can make it stronger.`
+  },
+  low: {
+    color: '#ef4444',
+    bg: 'rgba(239,68,68,0.08)',
+    label: 'Needs Improvement',
+    desc: `Your resume matches ${score}% of the job requirements. Consider improving the missing areas.`
+  }
+};
+
+const tier = score >= 75 ? 'high' : score >= 45 ? 'mid' : 'low';
+const sc = scoreColors[tier];
+
+const scoreCard = document.getElementById('scoreCard');
+scoreCard.style.setProperty('--score-color', sc.color);
+scoreCard.style.setProperty('--score-bg', sc.bg);
+
+document.getElementById('scoreNum').textContent = score + '%';
+document.getElementById('scoreNum').style.color = sc.color;
+document.getElementById('scoreBadge').textContent = sc.label;
+document.getElementById('scoreBadge').style.color = sc.color;
+document.getElementById('scoreBadge').style.background = sc.bg;
+document.getElementById('scoreDesc').textContent = sc.desc;
+
+setTimeout(() => {
+  document.getElementById('scoreBar').style.cssText = `width:${score}%;background:${sc.color}`;
+}, 400);
+
+const mkWrap = document.getElementById('matchingKeywords');
+mkWrap.innerHTML = "";
+
+if (matchingKWs.length === 0) {
+  const t = document.createElement('span');
+  t.className = 'kw-tag kw-found';
+  t.textContent = 'No matching keywords found';
+  mkWrap.appendChild(t);
+} else {
+  matchingKWs.forEach(kw => {
+    const t = document.createElement('span');
+    t.className = 'kw-tag kw-found';
+    t.textContent = kw;
+    mkWrap.appendChild(t);
+  });
+}
+
+const miWrap = document.getElementById('missingKeywords');
+miWrap.innerHTML = "";
+
+if (missingKWs.length === 0) {
+  const t = document.createElement('span');
+  t.className = 'kw-tag kw-found';
+  t.textContent = 'No missing skills';
+  miWrap.appendChild(t);
+} else {
+  missingKWs.forEach(kw => {
+    const t = document.createElement('span');
+    t.className = 'kw-tag kw-missing';
+    t.textContent = kw;
+    miWrap.appendChild(t);
+  });
+}
+
+function toggleRoadmap() {
+  const section = document.getElementById('roadmapSection');
+  const btn = document.getElementById('roadmapToggle');
+  const isOpen = section.classList.contains('open');
+
+  section.classList.toggle('open');
+
+  btn.innerHTML = isOpen
+    ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Show Improvement Roadmap`
+    : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 18 10.5 8.5 15.5 13.5 23 6"/><polyline points="17 6 23 6 23 12"/></svg> Hide Roadmap`;
+
+  if (!isOpen) {
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+</script>
+</body>
+</html>
