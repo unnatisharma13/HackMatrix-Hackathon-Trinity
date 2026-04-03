@@ -9,6 +9,7 @@ It analyzes resumes using Natural Language Processing (NLP) and provides:
 - Missing Skills
 - Improvement Insights
 
+Deployed link: resumatchtrinity.netlify.app
 ---
 
 # Features
