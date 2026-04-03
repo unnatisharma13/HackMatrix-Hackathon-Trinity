@@ -1,17 +1,17 @@
-# 🚀 ResuMatch – Resume Analyzer
+# ResuMatch – Smart Resume-Job Matcher with Skill Gap Analyzer
 
 ResuMatch is a web-based application that helps users evaluate how well their resume matches a job description.
 
 It analyzes resumes using Natural Language Processing (NLP) and provides:
 
-- ✅ Match Score (in percentage)
-- 🔍 Matching Keywords
-- ❌ Missing Skills
-- 📊 Improvement Insights
+- Match Score (in percentage)
+- Matching Keywords
+- Missing Skills
+- Improvement Insights
 
 ---
 
-# 📌 Features
+# Features
 
 - Upload Resume in PDF format
 - Enter job description
@@ -54,7 +54,7 @@ It analyzes resumes using Natural Language Processing (NLP) and provides:
 
 ---
 
-# 📂 Project Structure
+# Project Structure
     Backend
         ##app.py
             Flask server
