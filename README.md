@@ -1,4 +1,4 @@
-# ResuMatch – Smart Resume-Job Matcher with Skill Gap Analyzer
+# ResuMatch – Smart Resume- Job Matcher with Skill Gap Analyzer
 
 ResuMatch is a web-based application that helps users evaluate how well their resume matches a job description.
 
